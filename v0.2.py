@@ -257,7 +257,7 @@ class Key:
         self.a = False
         self.s = False
         self.d = False
-key = Key()
+controles = Key()
 
 class Player:
     x = 490
@@ -296,32 +296,32 @@ class Player:
                 if self.vy > 0:
                     h = 0
                     while h in range(2):
-                        if key.jet_pack_time < 50:
-                            key.jet_pack_time += 1
+                        if controles.jet_pack_time < 50:
+                            controles.jet_pack_time += 1
                         else:
-                            key.is_jump_enable = True
+                            controles.is_jump_enable = True
                         h += 1
-                if key.is_jump_enable and key.w and self.vy > 0:
+                if controles.is_jump_enable and controles.w and self.vy > 0:
                     particles.explosion(100)
                 self.vy = 0
                 self.vx /= 1.2
         self.vx /= 1.1
         self.vy += parameters.G
-        if key.s:
+        if controles.s:
             self.vy += parameters.G * 0.5
         self.vy /= 1.1
-        if key.w:
-            if key.jet_pack_time > 0 and key.is_jump_enable:
+        if controles.w:
+            if controles.jet_pack_time > 0 and controles.is_jump_enable:
                 self.vy += -4
-                key.jet_pack_time -= 1
-                if key.jet_pack_time == 0:
-                    key.is_jump_enable = False
+                controles.jet_pack_time -= 1
+                if controles.jet_pack_time == 0:
+                    controles.is_jump_enable = False
                 if self.vy < -10:
                     self.vy = -10
-                particles.make_smoke(player.x + 10, player.y + 20, 5)
-        if key.a:
+                particles.make_smoke(player.x + 10, player.y + 20, 100)
+        if controles.a:
             self.vx += -1
-        if key.d:
+        if controles.d:
             self.vx += 1
 player = Player()
 
@@ -332,23 +332,24 @@ class Particles:
     vy = []
     lifetime = []
     def update(self):
+        map_local = map_list
         obj = 0
         while obj in range(len(self.x)):
-            self.vx[obj] /= 1.06
-            self.vy[obj] /= 1.06
+            self.vx[obj] /= 1.04
+            self.vy[obj] /= 1.04
             self.x[obj] += self.vx[obj]
-            if map_list.MAP[math.floor(self.x[obj] // 50 % 20 + self.y[obj] // 50 * 20)] == 1:
+            if map_local.MAP[math.floor(self.x[obj] // 50 % 20 + self.y[obj] // 50 * 20)] == 1:
                 self.x[obj] -= self.vx[obj]
                 self.vx[obj] *= -rd.random() / 2
             self.y[obj] += self.vy[obj]
-            if map_list.MAP[math.floor(self.x[obj] // 50 % 20 + self.y[obj] // 50 * 20)] == 1:
+            if map_local.MAP[math.floor(self.x[obj] // 50 % 20 + self.y[obj] // 50 * 20)] == 1:
                 self.y[obj] -= self.vy[obj]
                 self.vy[obj] *= -rd.random() / 2
             self.lifetime[obj] += 1
             obj += 1
         obj = 0
         while obj in range(len(self.x)):
-            if self.lifetime[obj] > 100:
+            if self.lifetime[obj] > 100 or not  -200 < self.y[obj] - player.y + screen.get_height() / 2 < screen.get_height() + 200:
                 self.x.pop(obj)
                 self.y.pop(obj)
                 self.vx.pop(obj)
@@ -376,6 +377,10 @@ class Particles:
             i += 1
 particles = Particles()
 
+def render_text(what, color, where):
+    text = font.render(what, 1, pygame.Color(color))
+    screen.blit(text, where)
+
 def graphics():
     screen.blit(clear, (0, 0))
     screen.blit(game_title, (0, (len(map_list.MAP) * 2.5 - 850) - player.y))
@@ -389,18 +394,19 @@ def graphics():
     screen.blit(player_sprite, (player.x, 340))
     obj = 0
     while obj in range(len(particles.x)):
-        screen.blit(smoke, (particles.x[obj] - 10, particles.y[obj] + -player.y + 340 - 10))
+        if 0 < particles.y[obj] - player.y + screen.get_height() / 2 < screen.get_height(): screen.blit(smoke, (particles.x[obj] - 10, particles.y[obj] + -player.y + 340 - 10))
         obj += 1
     screen.blit(jet_pack_ui, (player.x - 50, 330))
-    jet_pack_bar = pygame.Surface((16, key.jet_pack_time))
-    if key.is_jump_enable:
+    jet_pack_bar = pygame.Surface((16, controles.jet_pack_time))
+    if controles.is_jump_enable:
         jet_pack_bar.fill('#50ff50')
     else:
-        if key.jet_pack_time > 30:
+        if controles.jet_pack_time > 30:
             jet_pack_bar.fill('#ffff00')
         else:
             jet_pack_bar.fill('#ff0000')
-    screen.blit(jet_pack_bar, (player.x - 48, 381 - key.jet_pack_time + 1))
+    screen.blit(jet_pack_bar, (player.x - 48, 381 - controles.jet_pack_time + 1))
+    render_text(str(int(clock.get_fps())), pygame.Color(50, 255, 50), pygame.math.Vector2(10, 10))
 
 while True:
     player.update()
@@ -408,27 +414,27 @@ while True:
     graphics()
     pygame.display.update()
     clock.tick(60)
-    key.tick += 1
-    key.tick %= 60
+    controles.tick += 1
+    controles.tick %= 60
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             pygame.quit()
             exit()
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
-                key.w = True
+                controles.w = True
             if event.key == pygame.K_a:
-                key.a = True
+                controles.a = True
             if event.key == pygame.K_s:
-                key.s = True
+                controles.s = True
             if event.key == pygame.K_d:
-                key.d = True
+                controles.d = True
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_w:
-                key.w = False
+                controles.w = False
             if event.key == pygame.K_a:
-                key.a = False
+                controles.a = False
             if event.key == pygame.K_s:
-                key.s = False
+                controles.s = False
             if event.key == pygame.K_d:
-                key.d = False
+                controles.d = False

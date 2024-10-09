@@ -1,4 +1,5 @@
 import pygame
+from numba import jit
 from sys import exit
 import math
 import random as rd
@@ -28,9 +29,9 @@ smoke = pygame.Surface((20, 20))
 smoke.fill('#a0a0a0')
 smoke.set_alpha(20)
 font = pygame.font.SysFont("Impact", 10)
-made_by = font.render('MADE BY ASTROLOICO', 36, 36)
+made_by = font.render('MADE BY ASTROLOICO', 1, 36)
 font = pygame.font.SysFont("Impact", 120)
-game_title = font.render('JET JUMPER', 60, 60)
+game_title = font.render('JET JUMPER', 1, 60)
 
 class Parameters:
     G = 2
@@ -240,7 +241,7 @@ class Map:
         1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 1,
         1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
     ]
-map = Map()
+map_list = Map()
 
 class Key:
     w = False
@@ -259,39 +260,39 @@ key = Key()
 
 class Player:
     x = 490
-    y = len(map.MAP) * 2.5 - 400
+    y = len(map_list.MAP) * 2.5 - 400
     vx = 0
     vy = -5
-    def update(c):
+    def update(self):
         j = 0
-        while j in range(math.floor(abs(c.vx))):
+        while j in range(math.floor(abs(self.vx))):
             j += 1
-            if not c.vx == 0:
-                c.x += c.vx / abs(c.vx)
-            if map.MAP[math.floor(c.x // 50 % 20 + c.y // 50 * 20)] != 0:
-                c.x -= c.vx / abs(c.vx)
-                c.vx = 0
-                c.vy /= 1.2
-            elif map.MAP[math.floor((c.x + 19) // 50 % 20 + c.y // 50 * 20)] != 0:
-                c.x -= c.vx / abs(c.vx)
-                c.vx = 0
-                c.vy /= 1.2
-            elif map.MAP[math.floor(c.x // 50 % 20 + (c.y + 19) // 50 * 20)] != 0:
-                c.x -= c.vx / abs(c.vx)
-                c.vx = 0
-                c.vy /= 1.2
-            elif map.MAP[math.floor((c.x + 19) // 50 % 20 + (c.y + 19) // 50 * 20)] != 0:
-                c.x -= c.vx / abs(c.vx)
-                c.vx = 0
-                c.vy /= 1.2
+            if not self.vx == 0:
+                self.x += self.vx / abs(self.vx)
+            if map_list.MAP[math.floor(self.x // 50 % 20 + self.y // 50 * 20)] != 0:
+                self.x -= self.vx / abs(self.vx)
+                self.vx = 0
+                self.vy /= 1.2
+            elif map_list.MAP[math.floor((self.x + 19) // 50 % 20 + self.y // 50 * 20)] != 0:
+                self.x -= self.vx / abs(self.vx)
+                self.vx = 0
+                self.vy /= 1.2
+            elif map_list.MAP[math.floor(self.x // 50 % 20 + (self.y + 19) // 50 * 20)] != 0:
+                self.x -= self.vx / abs(self.vx)
+                self.vx = 0
+                self.vy /= 1.2
+            elif map_list.MAP[math.floor((self.x + 19) // 50 % 20 + (self.y + 19) // 50 * 20)] != 0:
+                self.x -= self.vx / abs(self.vx)
+                self.vx = 0
+                self.vy /= 1.2
         j = 0
-        while j in range(math.floor(abs(c.vy))):
+        while j in range(math.floor(abs(self.vy))):
             j += 1
-            if not c.vy == 0:
-                c.y += c.vy / abs(c.vy)
-            if map.MAP[math.floor(c.x // 50 % 20 + c.y // 50 * 20)] == 1 or map.MAP[math.floor((c.x + 19) // 50 % 20 + c.y // 50 * 20)] == 1 or map.MAP[math.floor(c.x // 50 % 20 + (c.y + 19) // 50 * 20)] == 1 or map.MAP[math.floor((c.x + 19) // 50 % 20 + (c.y + 19) // 50 * 20)] == 1:
-                c.y -= c.vy / abs(c.vy)
-                if c.vy > 0:
+            if not self.vy == 0:
+                self.y += self.vy / abs(self.vy)
+            if map_list.MAP[math.floor(self.x // 50 % 20 + self.y // 50 * 20)] == 1 or map_list.MAP[math.floor((self.x + 19) // 50 % 20 + self.y // 50 * 20)] == 1 or map_list.MAP[math.floor(self.x // 50 % 20 + (self.y + 19) // 50 * 20)] == 1 or map_list.MAP[math.floor((self.x + 19) // 50 % 20 + (self.y + 19) // 50 * 20)] == 1:
+                self.y -= self.vy / abs(self.vy)
+                if self.vy > 0:
                     h = 0
                     while h in range(2):
                         if key.jet_pack_time < 50:
@@ -299,28 +300,28 @@ class Player:
                         else:
                             key.is_jump_enable = True
                         h += 1
-                if key.is_jump_enable and key.w and c.vy > 0:
+                if key.is_jump_enable and key.w and self.vy > 0:
                     particles.explosion(100)
-                c.vy = 0
-                c.vx /= 1.2
-        c.vx /= 1.1
-        c.vy += parameters.G
+                self.vy = 0
+                self.vx /= 1.2
+        self.vx /= 1.1
+        self.vy += parameters.G
         if key.s:
-            c.vy += parameters.G * 0.5
-        c.vy /= 1.1
+            self.vy += parameters.G * 0.5
+        self.vy /= 1.1
         if key.w:
             if key.jet_pack_time > 0 and key.is_jump_enable:
-                c.vy += -4
+                self.vy += -4
                 key.jet_pack_time -= 1
                 if key.jet_pack_time == 0:
                     key.is_jump_enable = False
-                if c.vy < -10:
-                    c.vy = -10
+                if self.vy < -10:
+                    self.vy = -10
                 particles.make_smoke(player.x + 10, player.y + 20, 5)
         if key.a:
-            c.vx += -1
+            self.vx += -1
         if key.d:
-            c.vx += 1
+            self.vx += 1
 player = Player()
 
 class Particles:
@@ -329,59 +330,59 @@ class Particles:
     vx = []
     vy = []
     lifetime = []
-    def update(c):
+    def update(self):
         obj = 0
-        while obj in range(len(c.x)):
-            c.vx[obj] /= 1.06
-            c.vy[obj] /= 1.06
-            c.x[obj] += c.vx[obj]
-            if map.MAP[math.floor(c.x[obj] // 50 % 20 + c.y[obj] // 50 * 20)] == 1:
-                c.x[obj] -= c.vx[obj]
-                c.vx[obj] *= -rd.random() / 2
-            c.y[obj] += c.vy[obj]
-            if map.MAP[math.floor(c.x[obj] // 50 % 20 + c.y[obj] // 50 * 20)] == 1:
-                c.y[obj] -= c.vy[obj]
-                c.vy[obj] *= -rd.random() / 2
-            c.lifetime[obj] += 1
+        while obj in range(len(self.x)):
+            self.vx[obj] /= 1.06
+            self.vy[obj] /= 1.06
+            self.x[obj] += self.vx[obj]
+            if map_list.MAP[math.floor(self.x[obj] // 50 % 20 + self.y[obj] // 50 * 20)] == 1:
+                self.x[obj] -= self.vx[obj]
+                self.vx[obj] *= -rd.random() / 2
+            self.y[obj] += self.vy[obj]
+            if map_list.MAP[math.floor(self.x[obj] // 50 % 20 + self.y[obj] // 50 * 20)] == 1:
+                self.y[obj] -= self.vy[obj]
+                self.vy[obj] *= -rd.random() / 2
+            self.lifetime[obj] += 1
             obj += 1
         obj = 0
-        while obj in range(len(c.x)):
-            if c.lifetime[obj] > 100:
-                c.x.pop(obj)
-                c.y.pop(obj)
-                c.vx.pop(obj)
-                c.vy.pop(obj)
-                c.lifetime.pop(obj)
+        while obj in range(len(self.x)):
+            if self.lifetime[obj] > 100:
+                self.x.pop(obj)
+                self.y.pop(obj)
+                self.vx.pop(obj)
+                self.vy.pop(obj)
+                self.lifetime.pop(obj)
             obj += 1
-    def make_smoke(c, x, y, q):
+    def make_smoke(self, x, y, q):
         i = 0
         while i in range(q):
-            c.x.append(x)
-            c.y.append(y + 5)
-            c.vx.append(rd.random() * 8 - 4 + -player.vx)
-            c.vy.append(rd.random() * 8 + 2 + player.vy)
-            c.lifetime.append(0)
+            self.x.append(x)
+            self.y.append(y + 5)
+            self.vx.append(rd.random() * 8 - 4 + -player.vx)
+            self.vy.append(rd.random() * 8 + 2 + player.vy)
+            self.lifetime.append(0)
             i += 1
-    def explosion(c, strenght):
+    def explosion(self, strength):
         i = 0
-        while i in range(strenght):
-            c.x.append(player.x)
-            c.y.append(player.y)
+        while i in range(strength):
+            self.x.append(player.x)
+            self.y.append(player.y)
             angle = rd.random() * math.pi * 2
-            c.vx.append(math.sin(angle) * rd.random() * 8)
-            c.vy.append(math.cos(angle) * rd.random() * 8)
-            c.lifetime.append(-60 - i // 2)
+            self.vx.append(math.sin(angle) * rd.random() * 8)
+            self.vy.append(math.cos(angle) * rd.random() * 8)
+            self.lifetime.append(-60 - i // 2)
             i += 1
 particles = Particles()
 
 def graphics():
     screen.blit(clear, (0, 0))
-    screen.blit(game_title, (0, (len(map.MAP) * 2.5 - 850) - player.y))
+    screen.blit(game_title, (0, (len(map_list.MAP) * 2.5 - 850) - player.y))
     i = 0
-    while i in range(len(map.MAP)):
-        if map.MAP[i] == 1:
+    while i in range(len(map_list.MAP)):
+        if map_list.MAP[i] == 1:
             screen.blit(ground_sprite, ((i % 20) * 50, ((i // 20) * 50 - player.y) + 340))
-            if i > 20 and map.MAP[i - 20] != 1:
+            if i > 20 and map_list.MAP[i - 20] != 1:
                 screen.blit(grass_sprite, ((i % 20) * 50, ((i // 20) * 50 - player.y) + 340))
         i += 1
     screen.blit(player_sprite, (player.x, 340))

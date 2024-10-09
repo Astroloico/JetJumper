@@ -3,10 +3,11 @@ from numba import jit
 from sys import exit
 import math
 import random as rd
+
 pygame.init()
 screen = pygame.display.set_mode((1000, 700))
 caption = pygame.Surface((20, 20))
-caption.fill('#f5f5f5')
+caption.fill('#006000')
 pygame.display.set_caption('jet jumper')
 pygame.display.set_icon(caption)
 clock = pygame.time.Clock()
@@ -251,11 +252,11 @@ class Key:
     is_jump_enable = True
     jet_pack_time = 50
     tick = 0
-    def reset_inputs(c):
-        c.w = False
-        c.a = False
-        c.s = False
-        c.d = False
+    def reset_inputs(self):
+        self.w = False
+        self.a = False
+        self.s = False
+        self.d = False
 key = Key()
 
 class Player:
